@@ -14,8 +14,8 @@ MOTORS = {
 }
 
 MOTOR_SIGN = {"M1": +1, "M2": +1, "M3": -1, "M4": -1}
-GAIN_RIGHT = {"M1": 0.996, "M2": 1.025, "M3": 1.000, "M4": 1.108} #gain for right movement
-GAIN_LEFT  = {"M1": 0.95, "M2": 1.100, "M3":0.60 , "M4": 1.40} #gain for left movement
+GAIN_RIGHT = {"M1": 0.96, "M2": 1.125, "M3": 1.000, "M4": 1.108} #gain for right movement
+GAIN_LEFT  = {"M1": 0.95, "M2": 1.100, "M3":0.40 , "M4": 1.50} #gain for left movement
 
 PWM_FREQ = 2000
 MAX_DUTY = 100
@@ -174,7 +174,7 @@ class MoveBurstNode(Node):
                 for name, base_cmd in self.current_cmds.items():
                     if abs(base_cmd) > 1e-6:
                         out = -math.copysign(BRAKE_DUTY / 100.0, base_cmd)
-                        out *= MOTOR_SIGN[name] 
+                        out *= MOTOR_SIGN[name]
                         self.motors[name].set(out, duty_limit=100)
             else:
                 self.stop_motors()
