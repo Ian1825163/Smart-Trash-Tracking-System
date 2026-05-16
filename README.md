@@ -16,7 +16,7 @@ Demo video to be added
 - Raspberry Pi 5
 - IMX219 camera module
 - Four mecanum wheels
-- Four DC motors with motor drivers
+- Four N20 motors
 - GPIO motor wiring as configured in `src/trash_script/trash_script/move.py`
 
 ## Software Stack
@@ -121,7 +121,7 @@ Tune these values on the real robot, because camera angle, lighting, motor drive
 
 ## Models
 
-The package installs `best.pt`, `best2.pt`, and `yolov8n.pt` into the ROS share directory. `vision.py` loads `best2.pt` by default and falls back to `yolov8n.pt` if needed.
+The package installs `best2.pt`, and `yolov8n.pt` into the ROS share directory. `vision.py` loads `best2.pt` by default and falls back to `yolov8n.pt` if needed.
 
 ## License
 
