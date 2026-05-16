@@ -6,15 +6,9 @@ The current ROS 2 workspace contains the vision, trajectory, and motor-control n
 
 ## Demo
 
-Add the demo video here when it is ready.
-
-Suggested options:
-
-- Upload the video to GitHub and paste the generated link below.
-- Place a local video at `media/demo.mp4` and replace this placeholder with a link or video tag.
 
 ```md
-[Demo video](media/demo.mp4)
+Demo video to be added
 ```
 
 ## Hardware
