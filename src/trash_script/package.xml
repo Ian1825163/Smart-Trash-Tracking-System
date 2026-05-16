@@ -3,13 +3,16 @@
 <package format="3">
   <name>trash_script</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>ROS 2 nodes for YOLO-based trash tracking and mecanum-wheel motion control.</description>
   <maintainer email="rpi5@todo.todo">rpi5</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>ament_index_python</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

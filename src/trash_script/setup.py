@@ -19,8 +19,8 @@ setup(
     zip_safe=True,
     maintainer='rpi5',
     maintainer_email='rpi5@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='ROS 2 nodes for YOLO-based trash tracking and mecanum-wheel motion control.',
+    license='Apache-2.0',
     extras_require={'test': ['pytest']},
     entry_points={
         'console_scripts': [

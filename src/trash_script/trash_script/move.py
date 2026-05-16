@@ -105,14 +105,20 @@ class MoveBurstNode(Node):
 
     def cb(self, msg: String):
         try:
-            direction, dur_s = msg.data.split(',')
-            direction = direction.strip().upper()
-            duration = float(dur_s)
+            parts = [part.strip() for part in msg.data.split(',')]
+            direction = parts[0].upper() if parts else ""
 
             if direction == 'STOP':
                 self.stop_motors()
                 self.state = "IDLE"
                 return
+
+            if len(parts) < 2:
+                self.get_logger().warn(f"Malformed burst command: {msg.data}")
+                return
+
+            duration = float(parts[1])
+            sent_t = float(parts[2]) if len(parts) >= 3 and parts[2] else None
 
             vx, vy = 0.0, 0.0
             if direction in ['F', 'FORWARD']:
@@ -132,11 +138,13 @@ class MoveBurstNode(Node):
                 gains = GAIN_RIGHT
             elif direction == 'FL':
                 vx, vy = 1.0, -1.0
+                gains = GAIN_LEFT
             elif direction == 'BR':
                 vx, vy = -1.0, +1.0
                 gains = GAIN_RIGHT
             elif direction == 'BL':
-                vx, vy = -1.0, 1.0
+                vx, vy = -1.0, -1.0
+                gains = GAIN_LEFT
             else:
                 self.get_logger().warn(f"Unknown direction: {direction}")
                 return
@@ -149,7 +157,11 @@ class MoveBurstNode(Node):
             self.state = "MOVING"
             self.end_time = now + duration * TIME_SCALE
 
-            self.get_logger().info(f"Burst: {direction},{duration:.2f}s")
+            if sent_t is not None:
+                latency_ms = (now - sent_t) * 1000.0
+                self.get_logger().info(f"Burst: {direction},{duration:.2f}s latency={latency_ms:.1f} ms")
+            else:
+                self.get_logger().info(f"Burst: {direction},{duration:.2f}s")
 
         except Exception as e:
             self.get_logger().error(f"Parse error: {e}")

@@ -2,7 +2,7 @@
 import os
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import PointStamped
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from cv_bridge import CvBridge
@@ -16,7 +16,7 @@ class VisionNode(Node):
         super().__init__('vision_node')
 
         # --- ROS pub/sub ---
-        self.pub_target = self.create_publisher(Point, '/target_coord', 10)
+        self.pub_target = self.create_publisher(PointStamped, '/target_coord', 10)
         self.pub_dbgimg = self.create_publisher(Image, '/yolo/debug_image', 10)
         self.pub_state  = self.create_publisher(String, '/vision/state', 10)
 
@@ -26,6 +26,8 @@ class VisionNode(Node):
 
         self.bridge = CvBridge()
         self.latest_frame = None
+        self.latest_frame_stamp = None
+        self.latest_frame_id = "camera"
 
         # --- Parameters (可不改也能跑) ---
         self.declare_parameter('conf_threshold', 0.5)
@@ -65,8 +67,25 @@ class VisionNode(Node):
     def image_callback(self, msg):
         try:
             self.latest_frame = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            self.latest_frame_stamp = msg.header.stamp
+            self.latest_frame_id = msg.header.frame_id or "camera"
         except Exception as e:
             self.get_logger().error(f"CV Bridge Error: {e}")
+
+    def make_target_msg(self, norm_x, norm_y, norm_area):
+        target_msg = PointStamped()
+        target_msg.header.frame_id = self.latest_frame_id
+        if (
+            self.latest_frame_stamp is not None and
+            (self.latest_frame_stamp.sec != 0 or self.latest_frame_stamp.nanosec != 0)
+        ):
+            target_msg.header.stamp = self.latest_frame_stamp
+        else:
+            target_msg.header.stamp = self.get_clock().now().to_msg()
+        target_msg.point.x = float(norm_x)
+        target_msg.point.y = float(norm_y)
+        target_msg.point.z = float(norm_area)
+        return target_msg
 
     def timer_callback(self):
         if self.latest_frame is None:
@@ -101,10 +120,7 @@ class VisionNode(Node):
                 norm_y = -(cy - h/2) / (h/2)
                 norm_area = (bw * bh) / float(w * h)
 
-                target_msg = Point()
-                target_msg.x = float(norm_x)
-                target_msg.y = float(norm_y)
-                target_msg.z = float(norm_area)
+                target_msg = self.make_target_msg(norm_x, norm_y, norm_area)
 
                 # draw bbox
                 cv2.rectangle(debug_frame, (x, y), (x + bw, y + bh), (0, 255, 0), 2)
@@ -134,10 +150,7 @@ class VisionNode(Node):
                 norm_y = -(cy - h/2) / (h/2)
                 norm_area = (bw * bh) / float(w * h)
 
-                target_msg = Point()
-                target_msg.x = float(norm_x)
-                target_msg.y = float(norm_y)
-                target_msg.z = float(norm_area)
+                target_msg = self.make_target_msg(norm_x, norm_y, norm_area)
 
                 # draw YOLO bbox
                 cv2.rectangle(debug_frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
@@ -157,7 +170,7 @@ class VisionNode(Node):
 
             if t - self.last_print_t > 0.5:
                 self.get_logger().info(
-                    f"[{self.state}] x={target_msg.x:+.3f} y={target_msg.y:+.3f} area(z)={target_msg.z:.4f}"
+                    f"[{self.state}] x={target_msg.point.x:+.3f} y={target_msg.point.y:+.3f} area(z)={target_msg.point.z:.4f}"
                 )
                 self.last_print_t = t
         else:
